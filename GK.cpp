@@ -11,6 +11,7 @@ Point curve_points[20];
 //POINT* curve_points;
 int counter = 0;
 bool isClosed = false;
+Point last_click;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -166,14 +167,19 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 		}
 
 	case WM_RBUTTONDOWN:
-		{
+		{	
 			int x = LOWORD(lParam);
 			int y = HIWORD(lParam);
+			if (last_click.X == x && last_click.Y == y) {
+				isClosed = true;
+			}
+			last_click.X = x;
+			last_click.Y = y;
 			if (!isClosed) {
 				curve_points[counter] = { x,y };
 				counter++;
 			}
-			InvalidateRgn(okno, NULL, true);
+			InvalidateRect(okno, NULL, true);
 		}
 	
 	case WM_RBUTTONUP:
@@ -184,7 +190,7 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 				curve_points[counter] = { x,y };
 				counter++;
 			}
-			InvalidateRgn(okno, NULL, true);
+			InvalidateRect(okno, NULL, true);
 		}
 
 	case WM_RBUTTONDBLCLK:
@@ -205,7 +211,7 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 					car[chosen].x = x;
 					car[chosen].y = y;
 				}
-				InvalidateRgn(okno, NULL, true);
+				InvalidateRect(okno, NULL, true);
 			}
 
 		}
@@ -223,12 +229,16 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 
 			SelectObject(kontekst, pedzle[5]);
 			Pie(kontekst, 200, 200, 400, 400, 400, 300, 300, 200);
+			DeleteObject(pedzle[5]);
 			SelectObject(kontekst, pedzle[4]);
 			Pie(kontekst, 200, 200, 400, 400, 300, 200, 200, 300);
+			DeleteObject(pedzle[4]);
 			SelectObject(kontekst, pedzle[3]);
 			Pie(kontekst, 200, 200, 400, 400, 200, 300, 300, 400);
+			DeleteObject(pedzle[3]);
 			SelectObject(kontekst, pedzle[2]);
 			Pie(kontekst, 200, 200, 400, 400, 300, 400, 400, 300);
+			DeleteObject(pedzle[2]);
 
 			POINT first[12], second[4];
 			createLetter(first, second);
@@ -236,6 +246,7 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 			setSize(second, 4, 164, 250, 1.5, 1.5);
 			SelectObject(kontekst, pedzle[1]);
 			Polygon(kontekst, first, 12);
+			DeleteObject(pedzle[1]);
 			SelectObject(kontekst, pedzle[0]);
 			Polygon(kontekst, second, 4);
 
@@ -247,7 +258,7 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 			Ellipse(kontekst, 810, 500, 860, 550);
 
 			Graphics grafika(kontekst);
-			Pen pen(RGB(255, 0, 0));
+			Pen pen(Color::Blue, 3);
 
 			for (int i = 0; i < counter; i++) {
 				Ellipse(kontekst, curve_points[i].X - 3, curve_points[i].Y - 3, curve_points[i].X + 3, curve_points[i].Y + 3);
@@ -258,6 +269,7 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 			else {
 				grafika.DrawClosedCurve(&pen, curve_points, counter);
 			}
+			DeleteObject(pedzle[0]);
 			
 			FontFamily  fontFamily(L"Times New Roman");
 			Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
