@@ -137,12 +137,12 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 	case WM_COMMAND:
 		switch (wParam)
 		{
-		case 100: if(MessageBox(okno, "Zapiszczeæ?", "Pisk", MB_YESNO) == IDYES)
+		case 100: if(MessageBox(okno, "ZapiszczeÄ‡?", "Pisk", MB_YESNO) == IDYES)
 					MessageBeep(0);
                   break;
 		case 101: DestroyWindow(okno);
         		  break;
-		case 200: MessageBox(okno, "Imiê i nazwisko:\nNumer indeksu: ", "Autor", MB_OK);
+		case 200: MessageBox(okno, "ImiÄ™ i nazwisko:\nNumer indeksu: ", "Autor", MB_OK);
 		}
 		return 0;
 	
@@ -173,6 +173,7 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 				curve_points[counter] = { x,y };
 				counter++;
 			}
+			InvalidateRgn(okno, NULL, true);
 		}
 	
 	case WM_RBUTTONUP:
@@ -183,11 +184,12 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 				curve_points[counter] = { x,y };
 				counter++;
 			}
+			InvalidateRgn(okno, NULL, true);
 		}
 
 	case WM_RBUTTONDBLCLK:
 		{
-			isClosed = true;
+			//isClosed = true;
 		}
 
 	case WM_MOUSEMOVE:
@@ -247,19 +249,22 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 			Graphics grafika(kontekst);
 			Pen pen(RGB(255, 0, 0));
 
-			/*if (!isClosed) {
-				grafika.DrawCurve(pen, curve_points, 0, counter);
+			for (int i = 0; i < counter; i++) {
+				Ellipse(kontekst, curve_points[i].X - 3, curve_points[i].Y - 3, curve_points[i].X + 3, curve_points[i].Y + 3);
+			}
+			if (!isClosed) {
+				grafika.DrawCurve(&pen, curve_points, counter);
 			}
 			else {
-				grafika.DrawClosedCurve(pen, curve_points, counter);
-			}*/
+				grafika.DrawClosedCurve(&pen, curve_points, counter);
+			}
 			
 			FontFamily  fontFamily(L"Times New Roman");
 			Font        font(&fontFamily, 24, FontStyleRegular, UnitPixel);
 			PointF      pointF(100.0f, 400.0f);
 			SolidBrush  solidBrush(Color(255, 0, 0, 255));
 
-			grafika.DrawString(L"To jest tekst napisany za pomoc¹ GDI+.", -1, &font, pointF, &solidBrush);
+			grafika.DrawString(L"To jest tekst napisany za pomocÄ… GDI+.", -1, &font, pointF, &solidBrush);
 			PointF pointXD(100.0f, 500.0f);
 
 			EndPaint(okno, &paint);
