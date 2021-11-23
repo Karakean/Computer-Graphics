@@ -8,7 +8,6 @@ int chosen;
 bool isChosen = false;
 
 Point curve_points[20];
-//POINT* curve_points;
 int counter = 0;
 bool isClosed = false;
 Point last_click;
@@ -170,32 +169,31 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 		{	
 			int x = LOWORD(lParam);
 			int y = HIWORD(lParam);
-			if (last_click.X == x && last_click.Y == y) {
-				isClosed = true;
-			}
-			last_click.X = x;
-			last_click.Y = y;
-			if (!isClosed) {
-				curve_points[counter] = { x,y };
+			if (counter < 20) {
+				curve_points[counter] = { x, y };
 				counter++;
 			}
 			InvalidateRect(okno, NULL, true);
+			return 0;
 		}
 	
+	case WM_RBUTTONDBLCLK:
+		{
+			isClosed = true;
+			InvalidateRect(okno, NULL, true);
+			return 0;
+		}
+
 	case WM_RBUTTONUP:
 		{
 			int x = LOWORD(lParam);
 			int y = HIWORD(lParam);
-			if (!isClosed) {
+			if ((!isClosed) && (counter < 20)) {
 				curve_points[counter] = { x,y };
 				counter++;
 			}
 			InvalidateRect(okno, NULL, true);
-		}
-
-	case WM_RBUTTONDBLCLK:
-		{
-			//isClosed = true;
+			return 0;
 		}
 
 	case WM_MOUSEMOVE:
@@ -283,7 +281,6 @@ LRESULT CALLBACK WndProc (HWND okno, UINT kod_meldunku, WPARAM wParam, LPARAM lP
 
 			return 0;
 		}
-  	
 	case WM_DESTROY:
 		PostQuitMessage (0) ;
 		return 0;
