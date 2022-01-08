@@ -51,7 +51,7 @@ int main()
 	float points[2*N];
 
 	float directionx = 0;
-	float directiony = 00;
+	float directiony = 0;
 	float directionx_change = 5;
 	float directiony_change = 5;
 
