@@ -1,5 +1,5 @@
 #define WF_NUM 4 //wall numbers + floor
-#define TEX_NUM 2
+#define TEX_NUM 4
 #define VBO_NUM 2*WF_NUM+WF_NUM-1
 #define GL3_PROTOTYPES 1
 #include <iostream>
@@ -98,6 +98,30 @@ GLfloat tex_floor[] = {	//wspolrzedne tekstury dla podlogi,
 	0.0f, 5.0f, // prawy gorny rog tekstury
 };
 
+GLfloat tex_wall1[] = {
+
+	0.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+	0.0f, 1.0f,
+};
+
+GLfloat tex_wall2[] = {
+
+	0.0f, 0.0f,
+	1.5f, 0.0f,
+	5.0f, 0.5f,
+	0.0f, 1.5f,
+};
+
+GLfloat tex_wall3[] = {
+
+	0.0f, 0.0f,
+	3.25f, 0.0f,
+	1.25f, 2.25f,
+	0.0f, 3.25f,
+};
+
 GLuint elements[] = { // pogrupowanie wierzcholkow w trojkaty, wykorzystane zarowno dla sciany jaki dla podlogi
 	0,1,2,
 	2,3,0,
@@ -109,9 +133,10 @@ float pixels_floor[] = { //tekstura o wymiarach 2x2; dla kazdego punktu okreslon
 };
 
 float pixels_wall[] = {
-	0.1f, 1.0f, 0.1f,   0.1f, 1.0f, 0.1f,	0.1f, 1.0f, 0.1f,
-	0.1f, 0.1f, 1.0f,   0.1f, 0.1f, 1.0f,	0.1f, 0.1f, 1.0f,
-	0.1f, 1.0f, 0.1f,   0.1f, 1.0f, 0.1f,	0.1f, 1.0f, 0.1f,
+	1.0f, 0.0f, 0.0f,   0.5f, 0.0f, 0.0f,   0.25f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,   0.0f, 0.5f, 0.0f,   0.0f, 0.25f, 0.0f,
+	0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 0.5f,    0.0f, 0.0f, 0.25f,
+	1.0f, 0.0f, 1.0f,  0.5f, 0.0f, 0.5f,    0.25f, 0.0f, 0.25f,
 };
 
 GLfloat ver_triangle[] = { //wspolrzedne wierzcholkow trojkata okreslajacego polozenie obserwatora (kamery)
@@ -233,7 +258,7 @@ void create_objects()
 	glEnableVertexAttribArray(colAttrib);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);	// bufor wspolrzednych tekstury podlogi
-	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_floor), tex_floor, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_wall1), tex_wall1, GL_STATIC_DRAW);
 	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(texAttrib);
 
@@ -254,7 +279,7 @@ void create_objects()
 	glEnableVertexAttribArray(colAttrib);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[10]);	// bufor wspolrzednych tekstury podlogi
-	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_floor), tex_floor, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_wall2), tex_wall2, GL_STATIC_DRAW);
 	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(texAttrib);
 
@@ -278,17 +303,19 @@ void configure_texture()
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels_floor); // ladowanie do tekstury tablicy pikseli
 
-	glGenTextures(1, &tex[1]);		// obiekt tekstury
-	glBindTexture(GL_TEXTURE_2D, tex[1]);		// powiazanie tekstury z obiektem (wybor tekstury)
+	for (int i = 1; i < TEX_NUM; i++) {
+		glGenTextures(1, &tex[i]);		// obiekt tekstury
+		glBindTexture(GL_TEXTURE_2D, tex[i]);		// powiazanie tekstury z obiektem (wybor tekstury)
 
-	// ustawienia parametrow tekstury
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// sposob nakladania tekstury
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		// ustawienia parametrow tekstury
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// sposob nakladania tekstury
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // sposob filtrowania tekstury
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // sposob filtrowania tekstury
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels_wall); // ladowanie do tekstury tablicy pikseli
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 3, 3, 0, GL_RGB, GL_FLOAT, pixels_wall); // ladowanie do tekstury tablicy pikseli
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -352,14 +379,18 @@ int main(int argc, char ** argv)
 					top_view = !top_view;
 					break;
 
-				//case SDLK_UP:
-				
-				//case SDLK_DOWN:
-					
-				//case SDLK_LEFT:
-					
-				//case SDLK_RIGHT:
-				
+				case SDLK_UP:
+					position += glm::vec3(0.0f, 0.0f, -0.1f);
+					break;
+				case SDLK_DOWN:
+					position += glm::vec3(0.0f, 0.0f, 0.1f);
+					break;
+				case SDLK_LEFT:
+					direction += glm::vec3(-0.1f, 0.0f, 0.0f);
+					break;
+				case SDLK_RIGHT:
+					direction += glm::vec3(0.1f, 0.0f, 0.0f);
+					break;
 				}
 
 			}
