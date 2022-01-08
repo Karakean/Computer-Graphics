@@ -15,7 +15,7 @@
 
 //------------------------------------------------------------------------------------------------------------------------------
 //Globalne zmienne 
-
+bool collision = false;
 // kod zrodlowy shadera wierzcholkow
 const GLchar* vertexSource =
 "#version 150 core\n"
@@ -361,7 +361,7 @@ int main(int argc, char ** argv)
 	glm::vec3 position = glm::vec3(0.0f, 1.0f, 0.0f); //poczatkowe polozenie kamery
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f); //poczatkowy kierunek, w ktorym kamera jest skierowana
 
-
+	float angle = 4.71f;
 	while (true)
 	{
 		if (SDL_PollEvent(&windowEvent))
@@ -380,16 +380,20 @@ int main(int argc, char ** argv)
 					break;
 
 				case SDLK_UP:
-					position += glm::vec3(0.0f, 0.0f, -0.1f);
+					position += direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_DOWN:
-					position += glm::vec3(0.0f, 0.0f, 0.1f);
+					position -= direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_LEFT:
-					direction += glm::vec3(-0.1f, 0.0f, 0.0f);
+					//direction += glm::vec3(-0.1f, 0.0f, 0.0f);
+					angle -= 0.05f;
+					direction = glm::vec3(cos(angle), 0.0f, sin(angle));
 					break;
 				case SDLK_RIGHT:
-					direction += glm::vec3(0.1f, 0.0f, 0.0f);
+					//direction += glm::vec3(0.1f, 0.0f, 0.0f);
+					angle += 0.05f;
+					direction = glm::vec3(cos(angle), 0.0f, sin(angle));
 					break;
 				}
 
@@ -424,7 +428,7 @@ int main(int argc, char ** argv)
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glBindVertexArray(vao[3]);
-		glBindTexture(GL_TEXTURE_2D, tex[1]);
+		glBindTexture(GL_TEXTURE_2D, tex[2]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		SDL_GL_SwapWindow(window);
@@ -434,10 +438,10 @@ int main(int argc, char ** argv)
 	glDeleteShader(fragmentShader);
 	glDeleteShader(vertexShader);
 
-	glDeleteBuffers(5, vbo);
+	glDeleteBuffers(VBO_NUM, vbo);
 	glDeleteBuffers(1, &ebo);
-	glDeleteTextures(1, &tex[0]);
-	glDeleteVertexArrays(2, vao);
+	glDeleteTextures(TEX_NUM, tex);
+	glDeleteVertexArrays(WF_NUM, vao);
 
 	SDL_GL_DeleteContext(context);
 	SDL_Quit();
