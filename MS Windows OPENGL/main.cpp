@@ -1,4 +1,4 @@
-#define WF_NUM 4 //wall numbers + floor
+#define WF_NUM 5 //wall numbers + floor + triangle
 #define TEX_NUM 4
 #define VBO_NUM 2*WF_NUM+WF_NUM-1
 #define GL3_PROTOTYPES 1
@@ -81,6 +81,13 @@ GLfloat ver_wall2[] = {
 	1.0f, 2.0f,-5.0f,
 	1.0f, 2.0f,0.0f,
 	1.0f, 0.0f,0.0f,
+};
+
+GLfloat ver_wall3[] = {
+	-4.0f, 0.0f,-5.0f,
+	-4.0f, 2.0f,-5.0f,
+	-4.0f, 2.0f,0.0f,
+	-4.0f, 0.0f,0.0f,
 };
 
 GLfloat col_wall[] = {
@@ -285,13 +292,34 @@ void create_objects()
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+
+	glBindVertexArray(vao[4]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[11]);	// bufor wspolrzednych wierzcholkow podlogi
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ver_wall3), ver_wall3, GL_STATIC_DRAW);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(posAttrib);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[12]);	// bufor kolorow wierzcholkow podlogi
+	glBufferData(GL_ARRAY_BUFFER, sizeof(col_wall), col_wall, GL_STATIC_DRAW);
+	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(colAttrib);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[13]);	// bufor wspolrzednych tekstury podlogi
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tex_wall3), tex_wall3, GL_STATIC_DRAW);
+	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(texAttrib);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
 
 void configure_texture()
 {
-	glGenTextures(1, &tex[0]);		// obiekt tekstury
+	glGenTextures(1, tex);		// obiekt tekstury
 	glBindTexture(GL_TEXTURE_2D, tex[0]);		// powiazanie tekstury z obiektem (wybor tekstury)
 
 	// ustawienia parametrow tekstury
@@ -429,6 +457,10 @@ int main(int argc, char ** argv)
 
 		glBindVertexArray(vao[3]);
 		glBindTexture(GL_TEXTURE_2D, tex[2]);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glBindVertexArray(vao[4]);
+		glBindTexture(GL_TEXTURE_2D, tex[3]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		SDL_GL_SwapWindow(window);
