@@ -13,6 +13,8 @@
 #define WIDTH 800
 #define HEIGHT 600
 
+float current_angle;
+
 //------------------------------------------------------------------------------------------------------------------------------
 //Globalne zmienne 
 bool collision = false;
@@ -160,6 +162,56 @@ GLfloat col_triangle[] = { //kolory wierzcholkow trojkata okreslajacego polozeni
 
 
 //------------------------------------------------------------------------------------------------------------------------------
+void move_arrow(float x, float z, float angle) {
+	//printf("(%f, %f)\n", x, z);
+	float dx, dz;
+	dx = x - ver_triangle[0];
+	dz = z - ver_triangle[2];
+	for (int i = 0; i < 3; i++) {
+		ver_triangle[0 + i * 3] += dx; // x
+		ver_triangle[2 + i * 3] += dz; // z
+	}
+
+
+
+	float newangle = angle - current_angle;
+	current_angle = angle;
+	// trojkat vao[1]
+
+	// srodek trojkata 
+	GLfloat cx = (ver_triangle[0] + ver_triangle[3] + ver_triangle[6]) / 3;
+	GLfloat cz = (ver_triangle[2] + ver_triangle[5] + ver_triangle[8]) / 3;
+	printf("(%f, %f)\n", cx, cz);
+	float px, pz;
+	for (int i = 0; i < 3; i++) {
+		px = ver_triangle[0 + i * 3];
+		pz = ver_triangle[2 + i * 3];
+
+		//printf("%d : %f %f \n", i+1, dx, dz);
+		ver_triangle[0 + i * 3] = cos(newangle) * (px - cx) - sin(newangle) * (pz - cz) + cx; // x
+		ver_triangle[2 + i * 3] = sin(newangle) * (px - cx) + cos(newangle) * (pz - cz) + cz; // z
+	}
+
+
+	glBindVertexArray(vao[1]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);	// bufor wspolrzednych wierzcholkow trojkata
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ver_triangle), ver_triangle, GL_STATIC_DRAW);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(posAttrib);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);	// bufor kolorow wierzcholkow trojkata
+	glBufferData(GL_ARRAY_BUFFER, sizeof(col_triangle), col_triangle, GL_STATIC_DRAW);
+	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(colAttrib);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
+	//glBindVertexArray(vao[1]);
+	//glDisable(GL_TEXTURE_2D);
+	//glDrawArrays(GL_TRIANGLES, 0, 3);	//rysujemy trojkat przedstawiajacy polozenie kamery
+}
 
 int init_shaders()
 {
@@ -348,7 +400,7 @@ void configure_texture()
 
 //------------------------------------------------------------------------------------------------------------------------------
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -370,14 +422,14 @@ int main(int argc, char ** argv)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL); // GL_ALWAYS)
 
-	if(!init_shaders())
+	if (!init_shaders())
 		return 0;
 
 	create_objects();
 
 	configure_texture();
 
-	
+
 	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 1.0f, 20.0f);		 //macierz rzutowania perspektywicznego
 	glm::mat4 viewMatrix;  //macierz widoku
 	glm::mat4 transformMatrix; //macierz wynikowa
@@ -390,6 +442,7 @@ int main(int argc, char ** argv)
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f); //poczatkowy kierunek, w ktorym kamera jest skierowana
 
 	float angle = 4.71f;
+	current_angle = angle;
 	while (true)
 	{
 		if (SDL_PollEvent(&windowEvent))
@@ -428,21 +481,22 @@ int main(int argc, char ** argv)
 			}
 
 		}
-	
-		if (top_view) //patrzymy z gory
+
+		if (top_view) {//patrzymy z gory
 			viewMatrix = glm::lookAt(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-	
+			move_arrow(position.x + direction.x, position.z + direction.z, angle);
+		}
 		else //patrzymy z miejsca, w ktorym jest obserwator 
 			viewMatrix = glm::lookAt(position, position + direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	
-			
+
+
 		transformMatrix = projectionMatrix * viewMatrix;				// wynikowa macierz transformacji
 		glUniformMatrix4fv(transformMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(transformMatrix));	// macierz jako wejściowa zmienna dla shadera wierzcholkow
 
-		
+
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);	// szare tlo
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		
+
 		glBindVertexArray(vao[0]);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);	//rysujemy podloge
@@ -450,7 +504,7 @@ int main(int argc, char ** argv)
 		glBindVertexArray(vao[1]);
 		glDisable(GL_TEXTURE_2D);
 		glDrawArrays(GL_TRIANGLES, 0, 3);	//rysujemy trojkat przedstawiajacy polozenie kamery
-		
+
 		glBindVertexArray(vao[2]);
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
