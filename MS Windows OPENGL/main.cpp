@@ -179,7 +179,6 @@ bool between(float x, float x1, float x2) {
 		x2 = x1;
 		x1 = tmp;
 	}
-
 	if (x >= x2 - width && x <= x1 + width)
 		return true;
 	return false;
@@ -191,13 +190,10 @@ bool collision(glm::vec3 newPosition) {
 		float x1, z1, x2, z2;
 		x1 = ver_collision[i * 6];
 		z1 = ver_collision[i * 6 + 2];
-
 		x2 = ver_collision[i * 6 + 3];
 		z2 = ver_collision[i * 6 + 5];
-		if (between(newPosition.x, x1, x2) && between(newPosition.z, z1, z2)) {
-			//printf("kolizja!");
+		if (between(newPosition.x, x1, x2) && between(newPosition.z, z1, z2))
 			return true;
-		}
 	}
 	return false;
 }
@@ -207,21 +203,21 @@ void move_arrow(float x, float z, float angle) {
 	dx = x - ver_triangle[0];
 	dz = z - ver_triangle[2];
 	for (int i = 0; i < 3; i++) {
-		ver_triangle[i * 3] += dx; // x
-		ver_triangle[i * 3 + 2] += dz; // z
+		ver_triangle[i * 3] += dx;
+		ver_triangle[i * 3 + 2] += dz;
 	}
 
 	float newAngle = angle - currAngle;
 	currAngle = angle;
 
-	GLfloat cx = (ver_triangle[0] + ver_triangle[3] + ver_triangle[6]) / 3;
-	GLfloat cz = (ver_triangle[2] + ver_triangle[5] + ver_triangle[8]) / 3;
-	float px, pz;
+	GLfloat currX = (ver_triangle[0] + ver_triangle[3] + ver_triangle[6]) / 3;
+	GLfloat currZ = (ver_triangle[2] + ver_triangle[5] + ver_triangle[8]) / 3;
+	float prevX, prevZ;
 	for (int i = 0; i < 3; i++) {
-		px = ver_triangle[0 + i * 3];
-		pz = ver_triangle[2 + i * 3];
-		ver_triangle[0 + i * 3] = cos(newAngle) * (px - cx) - sin(newAngle) * (pz - cz) + cx; // x
-		ver_triangle[2 + i * 3] = sin(newAngle) * (px - cx) + cos(newAngle) * (pz - cz) + cz; // z
+		prevX = ver_triangle[0 + i * 3];
+		prevZ = ver_triangle[2 + i * 3];
+		ver_triangle[i * 3] = cos(newAngle) * (prevX - currX) - sin(newAngle) * (prevZ - currZ) + currX;
+		ver_triangle[i * 3 + 2] = sin(newAngle) * (prevX - currX) + cos(newAngle) * (prevZ - currZ) + currZ;
 	}
 	//"refresh" arrow
 	glBindVertexArray(vao[1]);
