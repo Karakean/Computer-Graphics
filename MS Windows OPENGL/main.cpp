@@ -216,8 +216,8 @@ void move_arrow(float x, float z, float angle) {
 	for (int i = 0; i < 3; i++) {
 		prevX = ver_triangle[0 + i * 3];
 		prevZ = ver_triangle[2 + i * 3];
-		ver_triangle[i * 3] = cos(newAngle) * (prevX - currX) - sin(newAngle) * (prevZ - currZ) + currX;
-		ver_triangle[i * 3 + 2] = sin(newAngle) * (prevX - currX) + cos(newAngle) * (prevZ - currZ) + currZ;
+		ver_triangle[i * 3] = cos(newAngle) * (prevX - currX) - sin(newAngle) * (prevZ - currZ);
+		ver_triangle[i * 3 + 2] = sin(newAngle) * (prevX - currX) + cos(newAngle) * (prevZ - currZ);
 	}
 	//"refresh" arrow
 	glBindVertexArray(vao[1]);
