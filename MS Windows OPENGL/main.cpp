@@ -57,6 +57,7 @@ GLuint vao[WF_NUM], vbo[VBO_NUM], ebo, tex[TEX_NUM];	// identyfikatory poszczego
 
 //------------------------------------------------------------------------------------------------------------------------------
 
+
 GLfloat ver_floor[] = { //wspolrzedne wierzcholkow podlogi
 	-5.0f,  0.0f, -5.0f,
 	5.0f,  0.0f, -5.0f,
@@ -91,6 +92,16 @@ GLfloat ver_wall3[] = {
 	-4.0f, 2.0f,0.0f,
 	-4.0f, 0.0f,0.0f,
 };
+// punkty do sprawdzania zderzenia 
+GLfloat ver_walls_col[] = {
+	-4.0f, 0.0f,-5.0f,
+	1.0f, 0.0f,-5.0f,
+	1.0f, 0.0f,-5.0f,
+	1.0f, 0.0f,0.0f,
+	-4.0f, 0.0f,-5.0f,
+	-4.0f, 0.0f,0.0f,
+};
+
 
 GLfloat col_wall[] = {
 	1.0f, 1.0f, 1.0f,
@@ -160,7 +171,37 @@ GLfloat col_triangle[] = { //kolory wierzcholkow trojkata okreslajacego polozeni
 	0.0f, 0.0f, 1.0f,
 };
 
+bool between(float x, float x1, float x2) {
+	float width = 1.0f;
+	if (x2 > x1) {
+		float temp = x2;
+		x2 = x1;
+		x1 = temp;
+	}
 
+	if (x >= x2 - width && x <= x1 + width)
+		return true;
+	return false;
+
+}
+
+bool will_colide(glm::vec3 newPosition) {
+
+	for (int i = 0;i < 3; i++) {
+		float x1, z1, x2, z2;
+		x1 = ver_walls_col[i * 6];
+		z1 = ver_walls_col[i * 6+2];
+
+		x2 = ver_walls_col[i * 6+3];
+		z2 = ver_walls_col[i * 6 + 5];
+		if (between(newPosition.x, x1, x2) && between(newPosition.z, z1, z2)) {
+			printf("kolizja!");
+			return true;
+		}
+	}
+	return false;
+
+}
 //------------------------------------------------------------------------------------------------------------------------------
 void move_arrow(float x, float z, float angle) {
 	//printf("(%f, %f)\n", x, z);
@@ -461,10 +502,12 @@ int main(int argc, char** argv)
 					break;
 
 				case SDLK_UP:
-					position += direction * glm::vec3(0.1f, 0.1f, 0.1f);
+					if (!will_colide(position+direction * glm::vec3(0.1f, 0.1f, 0.1f)))
+						position += direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_DOWN:
-					position -= direction * glm::vec3(0.1f, 0.1f, 0.1f);
+					if (!will_colide(position - direction * glm::vec3(0.1f, 0.1f, 0.1f)))
+						position -= direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_LEFT:
 					//direction += glm::vec3(-0.1f, 0.0f, 0.0f);
