@@ -13,11 +13,9 @@
 #define WIDTH 800
 #define HEIGHT 600
 
-float current_angle;
-
 //------------------------------------------------------------------------------------------------------------------------------
 //Globalne zmienne 
-bool collision = false;
+float currAngle = -1.571f;
 // kod zrodlowy shadera wierzcholkow
 const GLchar* vertexSource =
 "#version 150 core\n"
@@ -47,6 +45,8 @@ const GLchar* fragmentSource =
 "}";
 
 
+
+
 //------------------------------------------------------------------------------------------------------------------------------
 
 GLint posAttrib, colAttrib, texAttrib;					//wskazniki atrybutow wierzcholkow
@@ -56,7 +56,6 @@ GLuint vertexShader, fragmentShader, shaderProgram;		//shadery
 GLuint vao[WF_NUM], vbo[VBO_NUM], ebo, tex[TEX_NUM];	// identyfikatory poszczegolnych obiektow (obiekty tablic wierzcholkow, buforow wierzcholkow, elementow, tekstury)
 
 //------------------------------------------------------------------------------------------------------------------------------
-
 
 GLfloat ver_floor[] = { //wspolrzedne wierzcholkow podlogi
 	-5.0f,  0.0f, -5.0f,
@@ -92,16 +91,15 @@ GLfloat ver_wall3[] = {
 	-4.0f, 2.0f,0.0f,
 	-4.0f, 0.0f,0.0f,
 };
-// punkty do sprawdzania zderzenia 
-GLfloat ver_walls_col[] = {
-	-4.0f, 0.0f,-5.0f,
-	1.0f, 0.0f,-5.0f,
+
+GLfloat ver_collision[] = {
+	-4.0f, 0.0f, -5.0f,
+	1.0f, 0.0f, -5.0f,
 	1.0f, 0.0f,-5.0f,
 	1.0f, 0.0f,0.0f,
 	-4.0f, 0.0f,-5.0f,
 	-4.0f, 0.0f,0.0f,
 };
-
 
 GLfloat col_wall[] = {
 	1.0f, 1.0f, 1.0f,
@@ -171,69 +169,61 @@ GLfloat col_triangle[] = { //kolory wierzcholkow trojkata okreslajacego polozeni
 	0.0f, 0.0f, 1.0f,
 };
 
+
+//------------------------------------------------------------------------------------------------------------------------------
+
 bool between(float x, float x1, float x2) {
 	float width = 1.0f;
 	if (x2 > x1) {
-		float temp = x2;
+		float tmp = x2;
 		x2 = x1;
-		x1 = temp;
+		x1 = tmp;
 	}
 
 	if (x >= x2 - width && x <= x1 + width)
 		return true;
 	return false;
-
 }
 
-bool will_colide(glm::vec3 newPosition) {
+bool collision(glm::vec3 newPosition) {
 
-	for (int i = 0;i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		float x1, z1, x2, z2;
-		x1 = ver_walls_col[i * 6];
-		z1 = ver_walls_col[i * 6+2];
+		x1 = ver_collision[i * 6];
+		z1 = ver_collision[i * 6 + 2];
 
-		x2 = ver_walls_col[i * 6+3];
-		z2 = ver_walls_col[i * 6 + 5];
+		x2 = ver_collision[i * 6 + 3];
+		z2 = ver_collision[i * 6 + 5];
 		if (between(newPosition.x, x1, x2) && between(newPosition.z, z1, z2)) {
-			printf("kolizja!");
+			//printf("kolizja!");
 			return true;
 		}
 	}
 	return false;
-
 }
 //------------------------------------------------------------------------------------------------------------------------------
 void move_arrow(float x, float z, float angle) {
-	//printf("(%f, %f)\n", x, z);
 	float dx, dz;
 	dx = x - ver_triangle[0];
 	dz = z - ver_triangle[2];
 	for (int i = 0; i < 3; i++) {
-		ver_triangle[0 + i * 3] += dx; // x
-		ver_triangle[2 + i * 3] += dz; // z
+		ver_triangle[i * 3] += dx; // x
+		ver_triangle[i * 3 + 2] += dz; // z
 	}
 
+	float newAngle = angle - currAngle;
+	currAngle = angle;
 
-
-	float newangle = angle - current_angle;
-	current_angle = angle;
-	// trojkat vao[1]
-
-	// srodek trojkata 
 	GLfloat cx = (ver_triangle[0] + ver_triangle[3] + ver_triangle[6]) / 3;
 	GLfloat cz = (ver_triangle[2] + ver_triangle[5] + ver_triangle[8]) / 3;
-	printf("(%f, %f)\n", cx, cz);
 	float px, pz;
 	for (int i = 0; i < 3; i++) {
 		px = ver_triangle[0 + i * 3];
 		pz = ver_triangle[2 + i * 3];
-
-		//printf("%d : %f %f \n", i+1, dx, dz);
-		ver_triangle[0 + i * 3] = cos(newangle) * (px - cx) - sin(newangle) * (pz - cz) + cx; // x
-		ver_triangle[2 + i * 3] = sin(newangle) * (px - cx) + cos(newangle) * (pz - cz) + cz; // z
+		ver_triangle[0 + i * 3] = cos(newAngle) * (px - cx) - sin(newAngle) * (pz - cz) + cx; // x
+		ver_triangle[2 + i * 3] = sin(newAngle) * (px - cx) + cos(newAngle) * (pz - cz) + cz; // z
 	}
-
-
+	//"refresh" arrow
 	glBindVertexArray(vao[1]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);	// bufor wspolrzednych wierzcholkow trojkata
@@ -248,10 +238,6 @@ void move_arrow(float x, float z, float angle) {
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
-	//glBindVertexArray(vao[1]);
-	//glDisable(GL_TEXTURE_2D);
-	//glDrawArrays(GL_TRIANGLES, 0, 3);	//rysujemy trojkat przedstawiajacy polozenie kamery
 }
 
 int init_shaders()
@@ -441,7 +427,7 @@ void configure_texture()
 
 //------------------------------------------------------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -463,14 +449,14 @@ int main(int argc, char** argv)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL); // GL_ALWAYS)
 
-	if (!init_shaders())
+	if(!init_shaders())
 		return 0;
 
 	create_objects();
 
 	configure_texture();
 
-
+	
 	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 1.0f, 20.0f);		 //macierz rzutowania perspektywicznego
 	glm::mat4 viewMatrix;  //macierz widoku
 	glm::mat4 transformMatrix; //macierz wynikowa
@@ -483,7 +469,6 @@ int main(int argc, char** argv)
 	glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f); //poczatkowy kierunek, w ktorym kamera jest skierowana
 
 	float angle = 4.71f;
-	current_angle = angle;
 	while (true)
 	{
 		if (SDL_PollEvent(&windowEvent))
@@ -502,11 +487,11 @@ int main(int argc, char** argv)
 					break;
 
 				case SDLK_UP:
-					if (!will_colide(position+direction * glm::vec3(0.1f, 0.1f, 0.1f)))
+					if(!collision(position + direction * glm::vec3(0.1f, 0.1f, 0.1f)))
 						position += direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_DOWN:
-					if (!will_colide(position - direction * glm::vec3(0.1f, 0.1f, 0.1f)))
+					if (!collision(position - direction * glm::vec3(0.1f, 0.1f, 0.1f)))
 						position -= direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_LEFT:
@@ -524,22 +509,23 @@ int main(int argc, char** argv)
 			}
 
 		}
-
-		if (top_view) {//patrzymy z gory
-			viewMatrix = glm::lookAt(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+	
+		if (top_view) { //patrzymy z gory
 			move_arrow(position.x + direction.x, position.z + direction.z, angle);
+			viewMatrix = glm::lookAt(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 		}
+	
 		else //patrzymy z miejsca, w ktorym jest obserwator 
 			viewMatrix = glm::lookAt(position, position + direction, glm::vec3(0.0f, 1.0f, 0.0f));
-
-
+	
+			
 		transformMatrix = projectionMatrix * viewMatrix;				// wynikowa macierz transformacji
 		glUniformMatrix4fv(transformMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(transformMatrix));	// macierz jako wejściowa zmienna dla shadera wierzcholkow
 
-
+		
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);	// szare tlo
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
+		
 		glBindVertexArray(vao[0]);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);	//rysujemy podloge
@@ -547,7 +533,7 @@ int main(int argc, char** argv)
 		glBindVertexArray(vao[1]);
 		glDisable(GL_TEXTURE_2D);
 		glDrawArrays(GL_TRIANGLES, 0, 3);	//rysujemy trojkat przedstawiajacy polozenie kamery
-
+		
 		glBindVertexArray(vao[2]);
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
