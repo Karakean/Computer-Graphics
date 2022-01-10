@@ -485,20 +485,20 @@ int main(int argc, char** argv)
 					break;
 
 				case SDLK_UP:
-					if (!collision(position + direction * glm::vec3(0.1f, 0.1f, 0.1f)))
-						position += direction * glm::vec3(0.1f, 0.1f, 0.1f);
+					if (!collision(position + direction * glm::vec3(10.0f, 10.0f, 10.0f)))
+						position += direction * glm::vec3(10.0f, 10.0f, 10.0f);
 					break;
 				case SDLK_DOWN:
-					if (!collision(position - direction * glm::vec3(0.1f, 0.1f, 0.1f)))
-						position -= direction * glm::vec3(0.1f, 0.1f, 0.1f);
+					if (!collision(position - direction * glm::vec3(10.0f, 10.0f, 10.0f)))
+						position -= direction * glm::vec3(10.0f, 10.0f, 10.0f);
 					break;
 				case SDLK_LEFT:
 					angle -= 0.05f;
-					direction = glm::vec3(cos(angle), 0.0f, sin(angle));
+					direction = glm::vec3(0.01f*cos(angle), 0.0f, 0.01f*sin(angle));
 					break;
 				case SDLK_RIGHT:
 					angle += 0.05f;
-					direction = glm::vec3(cos(angle), 0.0f, sin(angle));
+					direction = glm::vec3(0.01f*cos(angle), 0.0f, 0.01f*sin(angle));
 					break;
 				}
 
