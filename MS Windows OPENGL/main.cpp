@@ -216,8 +216,10 @@ void move_arrow(float x, float z, float angle) {
 	for (int i = 0; i < 3; i++) {
 		prevX = ver_triangle[0 + i * 3];
 		prevZ = ver_triangle[2 + i * 3];
-		ver_triangle[i * 3] = cos(newAngle) * (prevX - currX) - sin(newAngle) * (prevZ - currZ);
-		ver_triangle[i * 3 + 2] = sin(newAngle) * (prevX - currX) + cos(newAngle) * (prevZ - currZ);
+		ver_triangle[i * 3] = currX;
+		ver_triangle[i * 3 + 2] = currZ;
+		ver_triangle[i * 3] += cos(newAngle) * (prevX - currX) - sin(newAngle) * (prevZ - currZ);
+		ver_triangle[i * 3 + 2] += sin(newAngle) * (prevX - currX) + cos(newAngle) * (prevZ - currZ);
 	}
 	//"refresh" arrow
 	glBindVertexArray(vao[1]);
@@ -423,7 +425,7 @@ void configure_texture()
 
 //------------------------------------------------------------------------------------------------------------------------------
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -445,14 +447,14 @@ int main(int argc, char ** argv)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL); // GL_ALWAYS)
 
-	if(!init_shaders())
+	if (!init_shaders())
 		return 0;
 
 	create_objects();
 
 	configure_texture();
 
-	
+
 	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 1.0f, 1.0f, 20.0f);		 //macierz rzutowania perspektywicznego
 	glm::mat4 viewMatrix;  //macierz widoku
 	glm::mat4 transformMatrix; //macierz wynikowa
@@ -483,7 +485,7 @@ int main(int argc, char ** argv)
 					break;
 
 				case SDLK_UP:
-					if(!collision(position + direction * glm::vec3(0.1f, 0.1f, 0.1f)))
+					if (!collision(position + direction * glm::vec3(0.1f, 0.1f, 0.1f)))
 						position += direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_DOWN:
@@ -491,12 +493,10 @@ int main(int argc, char ** argv)
 						position -= direction * glm::vec3(0.1f, 0.1f, 0.1f);
 					break;
 				case SDLK_LEFT:
-					//direction += glm::vec3(-0.1f, 0.0f, 0.0f);
 					angle -= 0.05f;
 					direction = glm::vec3(cos(angle), 0.0f, sin(angle));
 					break;
 				case SDLK_RIGHT:
-					//direction += glm::vec3(0.1f, 0.0f, 0.0f);
 					angle += 0.05f;
 					direction = glm::vec3(cos(angle), 0.0f, sin(angle));
 					break;
@@ -505,23 +505,23 @@ int main(int argc, char ** argv)
 			}
 
 		}
-	
+
 		if (top_view) { //patrzymy z gory
 			move_arrow(position.x + direction.x, position.z + direction.z, angle);
 			viewMatrix = glm::lookAt(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 		}
-	
+
 		else //patrzymy z miejsca, w ktorym jest obserwator 
 			viewMatrix = glm::lookAt(position, position + direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	
-			
+
+
 		transformMatrix = projectionMatrix * viewMatrix;				// wynikowa macierz transformacji
 		glUniformMatrix4fv(transformMatrixUniformLocation, 1, GL_FALSE, glm::value_ptr(transformMatrix));	// macierz jako wejściowa zmienna dla shadera wierzcholkow
 
-		
+
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);	// szare tlo
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		
+
 		glBindVertexArray(vao[0]);
 		glBindTexture(GL_TEXTURE_2D, tex[0]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);	//rysujemy podloge
@@ -529,7 +529,7 @@ int main(int argc, char ** argv)
 		glBindVertexArray(vao[1]);
 		glDisable(GL_TEXTURE_2D);
 		glDrawArrays(GL_TRIANGLES, 0, 3);	//rysujemy trojkat przedstawiajacy polozenie kamery
-		
+
 		glBindVertexArray(vao[2]);
 		glBindTexture(GL_TEXTURE_2D, tex[1]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
